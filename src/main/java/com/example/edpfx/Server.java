@@ -2,11 +2,7 @@ package com.example.edpfx;
 
 
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.DayOfWeek;
@@ -19,7 +15,7 @@ import java.util.Scanner;
 public class Server {
     static String[] modules = new String[5];
     static Map<String, Lecture[]> schedule = new HashMap<>();//This is null why?
-    static HashMap<String,Integer> intervals = new HashMap<>();
+
    static HashMap<Integer,String> days = new HashMap<>();
    static HashMap<Integer,String> reverse_intervals = new HashMap<>();
 
@@ -27,15 +23,7 @@ public class Server {
         try (ServerSocket serverSocket = new ServerSocket(1054);
              Scanner scanner = new Scanner(System.in)) {
             System.out.println("Server is running and waiting for clients...");
-            intervals.put("9:00-10:00",0);
-            intervals.put("10:00-11:00",1);
-            intervals.put("11:00-12:00",2);
-            intervals.put("12:00-13:00",3);
-            intervals.put("13:00-14:00",4);
-            intervals.put("14:00-15:00",5);
-            intervals.put("15:00-16:00",6);
-            intervals.put("16:00-17:00",7);
-            intervals.put("17:00-18:00",8);
+
             days.put(0,"Monday");
             days.put(1,"Tuesday");
             days.put(2,"Wednesday");
@@ -52,8 +40,7 @@ public class Server {
             reverse_intervals.put(8,"17:00-18:00");
 
 
-            System.out.println(intervals.entrySet());
-            System.out.println(intervals.keySet());
+
             while (true) {
                 try (Socket socket = serverSocket.accept();
                      BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
@@ -87,7 +74,7 @@ public class Server {
                 String time;
                 String room;
                 String code;
-                int timeIndex;
+
 
                 switch(request) {
                     case("A"):
@@ -99,19 +86,18 @@ public class Server {
                         code = info[3].toUpperCase();
                         //TODO FIX THIS
                         //time is a string interval but we cant parse 9:00 -10:00 to an integer
-
-                        timeIndex = (intervals.get(time));
-                        System.out.println("Request received to schedule a lecture on " + day + "\n" + "In room: " + room + "\n" + "For module: " + code + "\nTime: " + timeIndex );
+                        //TODO REMOVE THIS
+                        System.out.println("Request received to schedule a lecture on " + day + "\n" + "In room: " + room + "\n" + "For module: " + code + "\nTime: " + time );
                         //TODO WE ARE RETURNING THE RESULT OF ATTEMPT SCHEDULE TO OUR CLIENT BUT WE ARENT ACTUALLY DOING ANYTHING WITH IT
-                        out.println(attemptSchedule(timeIndex, day, room, code)); //time, day, room, module
+                        out.println(attemptSchedule(Integer.parseInt(time), day, room, code)); //time, day, room, module
 
                         break;
                     case("R"):
                         day = info[0];
                         time = info[1];
-                        timeIndex = (intervals.get(time));
+
                         System.out.println("Request received to remove lecture on " + day + " " + time);
-                        out.println(removelecture(day, timeIndex));
+                        out.println(removelecture(day, Integer.parseInt(time)));
                         break;
                     case("V"):
                         System.out.println("Request received to view schedule");
@@ -141,12 +127,14 @@ public class Server {
             //lecture time will be indexed according to the time eg. 9:00 -> 0
             Lecture lecture = new Lecture(room, module);
             schedule.get(day)[time] = lecture;
+            System.out.println("the lecture" + schedule.get(day)[time]);
             return "Lecture has been scheduled for " + days.get(Integer.parseInt(day)) + " " + reverse_intervals.get(time);
         }
     }
 
     public static String removelecture(String day, int time) {
         if (schedule.get(day)[time] != null) {
+            System.out.println("I work");
             System.out.println(schedule.get(day)[time]);
             schedule.get(day)[time] = null;
             return "Removed lecture at " + days.get(Integer.parseInt(day)) + " " + reverse_intervals.get(time);
@@ -156,10 +144,26 @@ public class Server {
     }
 
     public static void viewSchedule(Socket socket) throws IOException{
-        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-        out.writeObject(schedule);
-        out.flush();
-        out.close();
+        try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+            //FOR LOOP TO FORMAT THE OUTPUT
+            for(int i = 0;i<schedule.size();i++) {
+                String index = String.valueOf(i);
+                String message = "";
+                for(int j = 0; j < schedule.get(index).length; j++) {
+                    if(!schedule.get(index)[i].toString().isEmpty()) {
+                        message += schedule.get(index)[j] + "/";
+                    }else{
+                        message +=  " /";
+                    }
+                }
+                System.out.println(message);
+                out.println(message);
+            }
+            out.flush();
+        } catch (IOException e) {
+            System.err.println("Error sending schedule: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public static boolean checkSchedule(int time, String day) {

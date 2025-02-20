@@ -1,10 +1,6 @@
 package com.example.edpfx;
 
-import java.io.BufferedReader;
-import java.io.ObjectInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
 
@@ -17,9 +13,19 @@ import java.util.HashMap;
  */
 public class Client {
     private Socket socket;
+    static HashMap<String,Integer> intervals = new HashMap<>();
 
     public Client(Socket socket) {
         this.socket = socket;
+        intervals.put("9:00-10:00",0);
+        intervals.put("10:00-11:00",1);
+        intervals.put("11:00-12:00",2);
+        intervals.put("12:00-13:00",3);
+        intervals.put("13:00-14:00",4);
+        intervals.put("14:00-15:00",5);
+        intervals.put("15:00-16:00",6);
+        intervals.put("16:00-17:00",7);
+        intervals.put("17:00-18:00",8);
     }
 
     public String messageServer(String message) {
@@ -35,31 +41,39 @@ public class Client {
     }
 
     public String addLecture(String day, String time, String room, String code) {
-        String message = "A" + day + "/" + time + "/" + room + "/" + code + "\n";
+        String message = "A" + day + "/" + intervals.get(time) + "/" + room + "/" + code + "\n";
         System.out.println(message);
         return messageServer(message);
     }
 
     public String removelecture(String day, String time) {
-        String message = "R" + day + "/" + time + "\n";
+        String message = "R" + day + "/" + intervals.get(time) + "\n";
         System.out.println(message);
         return messageServer(message);
     }
 
-    public HashMap<String, Lecture[]> viewSchedule() {
-        String message = "V\n";
+    public String[] viewSchedule() {
+        String message = "V";
         try {
+            System.out.println("Staring viewSchedule method");
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            System.out.println("print Writer created");
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println("buffered reader created");
 
             out.println(message);
-            HashMap<String, Lecture[]> schedule = (HashMap<String, Lecture[]>) in.readObject();
-            return schedule;
+            System.out.println("message sent");
+            String[] lectures = new String[5];
+            for(int i = 0; i < 5; i++){
+                lectures[i] = in.readLine();
+                System.out.println("Recieving messages" + lectures[i]);
+            }
+            System.out.println("Strings recieved");
+            return lectures;
         } catch (IOException e) {
             return null;
-        } catch (ClassNotFoundException e) {
-            return null;
         }
+        //return null;
     }
 
     public String Option() {

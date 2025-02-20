@@ -28,4 +28,6 @@ public class Lecture {
     public void setModule(String module) {
         this.module = module;
     }
+
+    public String toString(){return getRoom() + " " + getModule();}
 }

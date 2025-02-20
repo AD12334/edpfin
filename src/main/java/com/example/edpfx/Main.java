@@ -23,11 +23,15 @@ import java.util.Objects;
 
 public class Main extends Application {
     Scene scene;
+    static Client client;
+
+
+
     @Override
 
     public void start(Stage stage) {
         try {
-            Client client = new Client(new Socket(InetAddress.getLocalHost(), 1054));
+
             stage.setWidth(500);
             stage.setHeight(500);
             stage.setTitle("EDP_PROJECT");
@@ -102,11 +106,8 @@ public class Main extends Application {
             stage.setScene(scene);
             stage.show();
 
-        } catch(UnknownHostException e) {
+        } catch(Exception e) {
             System.out.println("Unknown Host");
-            e.printStackTrace();
-        } catch(IOException e) {
-            System.out.println("IO exception");
             e.printStackTrace();
         }
     }
@@ -357,7 +358,7 @@ public class Main extends Application {
 
         time.setOnAction(e-> {
             info.setDisable(false);
-            info.setText("Date: " + date.getValue() + " " + "\nTime: " + time.getValue());
+            info.setText("Date: " + date.getValue()  + " " + "\nTime: " + time.getValue());
             submit.setDisable(false);
         });
 
@@ -365,7 +366,7 @@ public class Main extends Application {
 
         submit.setOnAction(e-> {
             String dow = (String) date.getValue();
-            String dayOfWeek = String.valueOf(DayOfWeek.valueOf(dow.toUpperCase()).getValue());
+            String dayOfWeek = String.valueOf(DayOfWeek.valueOf(dow.toUpperCase()).getValue() - 1);
             textField.setText(client.removelecture(dayOfWeek,(String)time.getValue()));
         });
         Scene remove_scene = new Scene(stack,450,300);
@@ -377,7 +378,14 @@ public class Main extends Application {
     //**************************VIEW SCHEDULE****************************
 
     private void viewSchedule(Stage stage, Client client) {
-        HashMap<String, Lecture[]> schedule = client.viewSchedule();
+        String[] schedule = client.viewSchedule();
+        //SCHEDULE IS AN ARRAY WHERE THE KEY IS THE DAY (e.g. schedule[0] - monday stuff)
+        //THE CONTENTS IN EACH KEY IS THE LECTURES SCHEDULED FOR THAT DAY
+        //EACH LECTURE IS ADDED TO THE KEY IN ACCORDANCE TO ITS ORDER IN THE DAY
+        //e.g. a tuesday with only one lecture will be at index 2 and will contain null values apart from one area
+        for (int i =0;i <schedule.length;i++) {
+            System.out.println(schedule[i]);
+        }
         stage.setWidth(900);
         stage.setHeight(500);
 
@@ -959,6 +967,12 @@ public class Main extends Application {
 
     }
     public static void main(String[] args) {
+        try{
+         client = new Client(new Socket(InetAddress.getLocalHost(), 1054));
+        }catch(Exception e){
+            System.out.println("WHOOPS");
+
+        }
         launch();
     }
 }
