@@ -18,8 +18,7 @@ import java.net.UnknownHostException;
 import java.time.DayOfWeek;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 
 public class Main extends Application {
     Scene scene;
@@ -95,7 +94,15 @@ public class Main extends Application {
             //System.out.println("Ending communication");
             button5.prefWidthProperty().bind(pane.widthProperty());
             button5.prefHeightProperty().bind(pane.heightProperty().divide(5));
-            button5.setOnAction(e->System.exit(0));
+            button5.setOnAction(e-> {
+                try {
+                    stop();
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
             pane.add(button5, 0, 4);
             //**************************************Button 5**********************************************
             scene = new Scene(pane,500,500);
@@ -378,14 +385,43 @@ public class Main extends Application {
     //**************************VIEW SCHEDULE****************************
 
     private void viewSchedule(Stage stage, Client client) {
-        String[] schedule = client.viewSchedule();
+        String[] schedule = client.viewSchedule();//TODO CONVERT TO A 2D ARRAY AND SPLIT BASED ON /
+
+        String[][] schedule2D = new String[schedule.length][];
+        for (int i = 0; i < schedule.length; i++) {
+            //Our initial array was an arrray of strings each containing the lecture info for a given day
+            //In order to interpret this info we are going to split each array using the delimiter /
+            //We can put these split contents into another array which we store in another array for each day (array of days which is an array of lecture info)
+            // Split each string in the input array and store it in the corresponding row of the 2D array
+            schedule2D[i] = schedule[i].split("/");
+        }
+        LinkedHashMap<Integer,String> monday = new LinkedHashMap<>();
+        LinkedHashMap<Integer,String> tuesday = new LinkedHashMap<>();
+        LinkedHashMap<Integer,String> wednesday = new LinkedHashMap<>();
+        LinkedHashMap<Integer,String> thursday = new LinkedHashMap<>();
+        LinkedHashMap<Integer,String> friday = new LinkedHashMap<>();
+        //For each entry in schedule store its values and its index
+        String[] times = {"9:00-10:00","10:00-11:00","11:00-12:00","12:00-13:00","13:00-14:00","14:00-15:00","15:00-16:00","16:00-17:00","17:00-18:00"};
+        LinkedHashMap<Integer,String>[] maparr = new LinkedHashMap[]{monday,tuesday,wednesday,thursday,friday};
+        for(int i = 0;i <maparr.length;i++) {
+            for(int j = 0;j<times.length;j++) {
+                maparr[i].put(j,schedule2D[i][j]);
+            }
+        }
+
+        for(int i = 0;i <maparr.length;i++) {
+            System.out.println(maparr[i]);
+        }
+
+
+
+
         //SCHEDULE IS AN ARRAY WHERE THE KEY IS THE DAY (e.g. schedule[0] - monday stuff)
         //THE CONTENTS IN EACH KEY IS THE LECTURES SCHEDULED FOR THAT DAY
         //EACH LECTURE IS ADDED TO THE KEY IN ACCORDANCE TO ITS ORDER IN THE DAY
         //e.g. a tuesday with only one lecture will be at index 2 and will contain null values apart from one area
-        for (int i =0;i <schedule.length;i++) {
-            System.out.println(schedule[i]);
-        }
+
+
         stage.setWidth(900);
         stage.setHeight(500);
 
@@ -442,6 +478,9 @@ public class Main extends Application {
         vbox6.maxWidthProperty().bind(stage.widthProperty().divide(6));
         vbox6.minHeightProperty().bind(stage.heightProperty());
         vbox6.setStyle("-fx-border-color: black; -fx-border-width: 2; -fx-border-style: solid;");
+
+
+        VBox[] arr = {vbox2, vbox3, vbox4, vbox5, vbox6};
 
         // Monday
         TextField Monday = new TextField();
@@ -562,335 +601,25 @@ public class Main extends Application {
 
         vbox.getChildren().addAll(t1, t2, t3, t4, t5, t6, t7, t8, t9);
 
-        // TextBoxes for v2
-        TextField b1 = new TextField();
-        b1.setAlignment(Pos.CENTER);
-        b1.setEditable(false);
-        b1.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        b1.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        b1.setStyle("-fx-border-color: BLACK");
+        // TextBoxes for v2 onwards
+        for (int i = 0;i <5;i++){ //5 days
+            for(int j = 0;j < 9;j++){//9 possible lecture slots
+                TextField t = new TextField();
+                t.setAlignment(Pos.CENTER);
+                t.setEditable(false);
+                t.maxHeightProperty().bind(vbox.heightProperty().divide(10));
+                t.minHeightProperty().bind(vbox.heightProperty().divide(10));
+                t.setStyle("-fx-border-color: BLACK");
+                t.setText(maparr[i].get(j)); //setting the text for each day
+                arr[i].getChildren().add(t);
+            }
+        }
 
-        TextField b2 = new TextField();
-        b2.setAlignment(Pos.CENTER);
-        b2.setEditable(false);
-        b2.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        b2.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        b2.setStyle("-fx-border-color: BLACK");
 
-        TextField b3 = new TextField();
-        b3.setAlignment(Pos.CENTER);
-        b3.setEditable(false);
-        b3.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        b3.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        b3.setStyle("-fx-border-color: BLACK");
 
-        TextField b4 = new TextField();
-        b4.setAlignment(Pos.CENTER);
-        b4.setEditable(false);
-        b4.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        b4.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        b4.setStyle("-fx-border-color: BLACK");
 
-        TextField b5 = new TextField();
-        b5.setAlignment(Pos.CENTER);
-        b5.setEditable(false);
-        b5.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        b5.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        b5.setStyle("-fx-border-color: BLACK");
 
-        TextField b6 = new TextField();
-        b6.setAlignment(Pos.CENTER);
-        b6.setEditable(false);
-        b6.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        b6.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        b6.setStyle("-fx-border-color: BLACK");
 
-        TextField b7 = new TextField();
-        b7.setAlignment(Pos.CENTER);
-        b7.setEditable(false);
-        b7.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        b7.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        b7.setStyle("-fx-border-color: BLACK");
-
-        TextField b8 = new TextField();
-        b8.setAlignment(Pos.CENTER);
-        b8.setEditable(false);
-        b8.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        b8.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        b8.setStyle("-fx-border-color: BLACK");
-
-        TextField b9 = new TextField();
-        b9.setAlignment(Pos.CENTER);
-        b9.setEditable(false);
-        b9.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        b9.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        b9.setStyle("-fx-border-color: BLACK");
-
-        vbox2.getChildren().addAll(b1, b2, b3, b4, b5, b6, b7, b8, b9);
-
-        // TextBoxes for v3
-        TextField c1 = new TextField();
-        c1.setAlignment(Pos.CENTER);
-        c1.setEditable(false);
-        c1.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        c1.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        c1.setStyle("-fx-border-color: BLACK");
-
-        TextField c2 = new TextField();
-        c2.setAlignment(Pos.CENTER);
-        c2.setEditable(false);
-        c2.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        c2.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        c2.setStyle("-fx-border-color: BLACK");
-
-        TextField c3 = new TextField();
-        c3.setAlignment(Pos.CENTER);
-        c3.setEditable(false);
-        c3.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        c3.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        c3.setStyle("-fx-border-color: BLACK");
-
-        TextField c4 = new TextField();
-        c4.setAlignment(Pos.CENTER);
-        c4.setEditable(false);
-        c4.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        c4.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        c4.setStyle("-fx-border-color: BLACK");
-
-        TextField c5 = new TextField();
-        c5.setAlignment(Pos.CENTER);
-        c5.setEditable(false);
-        c5.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        c5.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        c5.setStyle("-fx-border-color: BLACK");
-
-        TextField c6 = new TextField();
-        c6.setAlignment(Pos.CENTER);
-        c6.setEditable(false);
-        c6.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        c6.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        c6.setStyle("-fx-border-color: BLACK");
-
-        TextField c7 = new TextField();
-        c7.setAlignment(Pos.CENTER);
-        c7.setEditable(false);
-        c7.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        c7.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        c7.setStyle("-fx-border-color: BLACK");
-
-        TextField c8 = new TextField();
-        c8.setAlignment(Pos.CENTER);
-        c8.setEditable(false);
-        c8.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        c8.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        c8.setStyle("-fx-border-color: BLACK");
-
-        TextField c9 = new TextField();
-        c9.setAlignment(Pos.CENTER);
-        c9.setEditable(false);
-        c9.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        c9.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        c9.setStyle("-fx-border-color: BLACK");
-
-        vbox3.getChildren().addAll(c1, c2, c3, c4, c5, c6, c7, c8, c9);
-
-        // TextBoxes for v4
-        TextField d1 = new TextField();
-        d1.setAlignment(Pos.CENTER);
-        d1.setEditable(false);
-        d1.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        d1.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        d1.setStyle("-fx-border-color: BLACK");
-
-        TextField d2 = new TextField();
-        d2.setAlignment(Pos.CENTER);
-        d2.setEditable(false);
-        d2.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        d2.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        d2.setStyle("-fx-border-color: BLACK");
-
-        TextField d3 = new TextField();
-        d3.setAlignment(Pos.CENTER);
-        d3.setEditable(false);
-        d3.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        d3.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        d3.setStyle("-fx-border-color: BLACK");
-
-        TextField d4 = new TextField();
-        d4.setAlignment(Pos.CENTER);
-        d4.setEditable(false);
-        d4.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        d4.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        d4.setStyle("-fx-border-color: BLACK");
-
-        TextField d5 = new TextField();
-        d5.setAlignment(Pos.CENTER);
-        d5.setEditable(false);
-        d5.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        d5.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        d5.setStyle("-fx-border-color: BLACK");
-
-        TextField d6 = new TextField();
-        d6.setAlignment(Pos.CENTER);
-        d6.setEditable(false);
-        d6.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        d6.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        d6.setStyle("-fx-border-color: BLACK");
-
-        TextField d7 = new TextField();
-        d7.setAlignment(Pos.CENTER);
-        d7.setEditable(false);
-        d7.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        d7.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        d7.setStyle("-fx-border-color: BLACK");
-
-        TextField d8 = new TextField();
-        d8.setAlignment(Pos.CENTER);
-        d8.setEditable(false);
-        d8.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        d8.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        d8.setStyle("-fx-border-color: BLACK");
-
-        TextField d9 = new TextField();
-        d9.setAlignment(Pos.CENTER);
-        d9.setEditable(false);
-        d9.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        d9.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        d9.setStyle("-fx-border-color: BLACK");
-
-        vbox4.getChildren().addAll(d1, d2, d3, d4, d5, d6, d7, d8, d9);
-
-        // TextBoxes for v5
-        TextField e1 = new TextField();
-        e1.setAlignment(Pos.CENTER);
-        e1.setEditable(false);
-        e1.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        e1.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        e1.setStyle("-fx-border-color: BLACK");
-
-        TextField e2 = new TextField();
-        e2.setAlignment(Pos.CENTER);
-        e2.setEditable(false);
-        e2.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        e2.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        e2.setStyle("-fx-border-color: BLACK");
-
-        TextField e3 = new TextField();
-        e3.setAlignment(Pos.CENTER);
-        e3.setEditable(false);
-        e3.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        e3.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        e3.setStyle("-fx-border-color: BLACK");
-
-        TextField e4 = new TextField();
-        e4.setAlignment(Pos.CENTER);
-        e4.setEditable(false);
-        e4.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        e4.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        e4.setStyle("-fx-border-color: BLACK");
-
-        TextField e5 = new TextField();
-        e5.setAlignment(Pos.CENTER);
-        e5.setEditable(false);
-        e5.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        e5.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        e5.setStyle("-fx-border-color: BLACK");
-
-        TextField e6 = new TextField();
-        e6.setAlignment(Pos.CENTER);
-        e6.setEditable(false);
-        e6.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        e6.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        e6.setStyle("-fx-border-color: BLACK");
-
-        TextField e7 = new TextField();
-        e7.setAlignment(Pos.CENTER);
-        e7.setEditable(false);
-        e7.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        e7.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        e7.setStyle("-fx-border-color: BLACK");
-
-        TextField e8 = new TextField();
-        e8.setAlignment(Pos.CENTER);
-        e8.setEditable(false);
-        e8.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        e8.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        e8.setStyle("-fx-border-color: BLACK");
-
-        TextField e9 = new TextField();
-        e9.setAlignment(Pos.CENTER);
-        e9.setEditable(false);
-        e9.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        e9.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        e9.setStyle("-fx-border-color: BLACK");
-
-        vbox5.getChildren().addAll(e1, e2, e3, e4, e5, e6, e7, e8, e9);
-
-        // TextBoxes for v6
-        TextField f1 = new TextField();
-        f1.setAlignment(Pos.CENTER);
-        f1.setEditable(false);
-        f1.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        f1.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        f1.setStyle("-fx-border-color: BLACK");
-
-        TextField f2 = new TextField();
-        f2.setAlignment(Pos.CENTER);
-        f2.setEditable(false);
-        f2.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        f2.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        f2.setStyle("-fx-border-color: BLACK");
-
-        TextField f3 = new TextField();
-        f3.setAlignment(Pos.CENTER);
-        f3.setEditable(false);
-        f3.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        f3.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        f3.setStyle("-fx-border-color: BLACK");
-
-        TextField f4 = new TextField();
-        f4.setAlignment(Pos.CENTER);
-        f4.setEditable(false);
-        f4.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        f4.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        f4.setStyle("-fx-border-color: BLACK");
-
-        TextField f5 = new TextField();
-        f5.setAlignment(Pos.CENTER);
-        f5.setEditable(false);
-        f5.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        f5.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        f5.setStyle("-fx-border-color: BLACK");
-
-        TextField f6 = new TextField();
-        f6.setAlignment(Pos.CENTER);
-        f6.setEditable(false);
-        f6.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        f6.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        f6.setStyle("-fx-border-color: BLACK");
-
-        TextField f7 = new TextField();
-        f7.setAlignment(Pos.CENTER);
-        f7.setEditable(false);
-        f7.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        f7.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        f7.setStyle("-fx-border-color: BLACK");
-
-        TextField f8 = new TextField();
-        f8.setAlignment(Pos.CENTER);
-        f8.setEditable(false);
-        f8.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        f8.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        f8.setStyle("-fx-border-color: BLACK");
-
-        TextField f9 = new TextField();
-        f9.setAlignment(Pos.CENTER);
-        f9.setEditable(false);
-        f9.maxHeightProperty().bind(vbox.heightProperty().divide(10));
-        f9.minHeightProperty().bind(vbox.heightProperty().divide(10));
-        f9.setStyle("-fx-border-color: BLACK");
-
-        vbox6.getChildren().addAll(f1, f2, f3, f4, f5, f6, f7, f8, f9);
 
         // Adding the finished product
         grid.add(vbox, 0, 1);
@@ -949,8 +678,8 @@ public class Main extends Application {
         text.setEditable(false);
         text.setAlignment(Pos.CENTER);
 
+        requestroom.setOnAction(e -> text.setText(client.Option()));
 
-        requestroom.setOnAction(e-> text.setText("ERROR"));
 
         grid.add(text, 0, 2);
 
@@ -965,6 +694,26 @@ public class Main extends Application {
         stage.show();
 
 
+    }
+    public void stop() throws InterruptedException, IOException {
+        String message = client.Exit();
+
+
+        Alert a = new Alert(Alert.AlertType.NONE);
+        a.setAlertType(Alert.AlertType.WARNING);
+
+        // set content text
+        a.setContentText( message + ": Communication with the server has concluded");
+
+        // show the dialog
+        a.show();
+
+        try {
+            Thread.sleep(5000); // Pause for 5 seconds
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.exit(0);
     }
     public static void main(String[] args) {
         try{

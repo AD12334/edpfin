@@ -51,8 +51,10 @@ public class Server {
                     handleMessages(socket, in, scanner); // Having this here is causing an error
                     //A message is processed upon reception, however once processed if no new message is available an error is thrown
                     //Be careful if edititng here -Adam 2025 library floor 2
+                    //TODO FIX
                 } catch (IOException e) {
                     System.err.println("Error handling client connection: " + e.getMessage());
+                    e.printStackTrace(); // Print the full stack trace to the console
                 }
             }
         } catch (IOException e) {
@@ -63,59 +65,73 @@ public class Server {
     static void handleMessages(Socket socket, BufferedReader in, Scanner scanner) throws IOException {
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         String message;
-        while ((message = in.readLine()) != null) { // Read messages until client disconnects
-            if(message.length() > 0) {
+        try {
+            while ((message = in.readLine()) != null) { // Read messages until client disconnects
+                if(message.length() > 0) {
 
-                String request = message.substring(0,1);
+                    String request = message.substring(0,1);
 
-                String content = message.substring(1);
-                String[] info = content.split("/");
-                String day;
-                String time;
-                String room;
-                String code;
+                    String content = message.substring(1);
+                    String[] info = content.split("/");
+                    String day;
+                    String time;
+                    String room;
+                    String code;
 
 
-                switch(request) {
-                    case("A"):
-                        // String message = day + "/" + start + "/" + room + "/" + code + "\n";
+                    switch(request) {
+                        case("A"):
+                            // String message = day + "/" + start + "/" + room + "/" + code + "\n";
 
-                        day = info[0].toLowerCase();
-                        time = info[1];
-                        room = info[2];
-                        code = info[3].toUpperCase();
-                        //TODO FIX THIS
-                        //time is a string interval but we cant parse 9:00 -10:00 to an integer
-                        //TODO REMOVE THIS
-                        System.out.println("Request received to schedule a lecture on " + day + "\n" + "In room: " + room + "\n" + "For module: " + code + "\nTime: " + time );
-                        //TODO WE ARE RETURNING THE RESULT OF ATTEMPT SCHEDULE TO OUR CLIENT BUT WE ARENT ACTUALLY DOING ANYTHING WITH IT
-                        out.println(attemptSchedule(Integer.parseInt(time), day, room, code)); //time, day, room, module
+                            day = info[0].toLowerCase();
+                            time = info[1];
+                            room = info[2];
+                            code = info[3].toUpperCase();
+                            //TODO FIX THIS
+                            //time is a string interval but we cant parse 9:00 -10:00 to an integer
+                            //TODO REMOVE THIS
+                            System.out.println("Request received to schedule a lecture on " + day + "\n" + "In room: " + room + "\n" + "For module: " + code + "\nTime: " + time );
+                            //TODO WE ARE RETURNING THE RESULT OF ATTEMPT SCHEDULE TO OUR CLIENT BUT WE ARENT ACTUALLY DOING ANYTHING WITH IT
+                            out.println(attemptSchedule(Integer.parseInt(time), day, room, code)); //time, day, room, module
 
-                        break;
-                    case("R"):
-                        day = info[0];
-                        time = info[1];
+                            break;
+                        case("R"):
+                            day = info[0];
+                            time = info[1];
 
-                        System.out.println("Request received to remove lecture on " + day + " " + time);
-                        out.println(removelecture(day, Integer.parseInt(time)));
-                        break;
-                    case("V"):
-                        System.out.println("Request received to view schedule");
-                        viewSchedule(socket);
-                        break;
-                    case("O"):
-                        System.out.println("Request received to show options");
-                        try {
-                            throw new IncorrectActionException();
-                        } catch (IncorrectActionException e) {
-                            out.println(e.getMessage());
-                        }
-                        break;
-                    default:
-                        System.out.println(message);
+                            System.out.println("Request received to remove lecture on " + day + " " + time);
+                            out.println(removelecture(day, Integer.parseInt(time)));
+                            break;
+                        case("V"):
+                            System.out.println("Request received to view schedule");
+                            viewSchedule(socket);
+                            break;
+                        case("O"):
+                            System.out.println("Request received to show options");
+                            try {
+                                throw new IncorrectActionException();
+                            } catch (IncorrectActionException e) {
+                                out.println(e.getMessage());
+                            }
+                            break;
+                        case("S"):
+                            System.out.println("Request received to quit");
+                            out.println("TERMINATE");
+                            try{
+                                socket.close();
+                            }catch(IOException e){
+                                System.err.println("Error closing socket: " + e.getMessage());
+                            }
+                            break;
+                        default:
+                            System.out.println(message);
+                    }
                 }
-            }
         }
+
+        }catch (Exception e){
+
+        } //TODO FIX
     }
 //TODO FIX THIS BECAUSE WHY IS TIME AN INT
     public static String attemptSchedule(int time, String day, String room, String module) {
@@ -144,26 +160,25 @@ public class Server {
     }
 
     public static void viewSchedule(Socket socket) throws IOException{
-        try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             //FOR LOOP TO FORMAT THE OUTPUT
             for(int i = 0;i<schedule.size();i++) {
                 String index = String.valueOf(i);
                 String message = "";
-                for(int j = 0; j < schedule.get(index).length; j++) {
-                    if(!schedule.get(index)[i].toString().isEmpty()) {
+                for (int j = 0; j < schedule.get(index).length; j++) {
+                    if (schedule.get(index)[j] != null) {
                         message += schedule.get(index)[j] + "/";
-                    }else{
-                        message +=  " /";
+                    } else {
+                        message += " /";
                     }
                 }
                 System.out.println(message);
                 out.println(message);
             }
-            out.flush();
-        } catch (IOException e) {
+        /*catch (IOException e) {
             System.err.println("Error sending schedule: " + e.getMessage());
             e.printStackTrace();
-        }
+        }*/
     }
 
     public static boolean checkSchedule(int time, String day) {
@@ -175,7 +190,7 @@ public class Server {
     }
 
     public static boolean checkModules(String module) {
-        for(int i = 0; i < 5; i++) {
+        for(int i = 0; i < 5; i++) { //why doesnt this work
             if(module.equals(modules[i])) {
                 return true;
             } else if(modules[i] == null) {

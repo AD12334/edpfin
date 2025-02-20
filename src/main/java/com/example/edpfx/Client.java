@@ -78,7 +78,14 @@ public class Client {
 
     public String Option() {
         String message = "O\n";
-        return message;
+        return messageServer(message);
+    }
+    public String Exit() throws IOException {
+        String message = "S";
+        System.out.println(message);
+        String reply =  messageServer(message);
+        socket.close();
+        return reply;
     }
 }
 

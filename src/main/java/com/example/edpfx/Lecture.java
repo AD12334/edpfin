@@ -29,5 +29,5 @@ public class Lecture {
         this.module = module;
     }
 
-    public String toString(){return getRoom() + " " + getModule();}
+    public String toString(){return getRoom() + "," + getModule();}
 }
