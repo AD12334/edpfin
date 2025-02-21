@@ -84,8 +84,13 @@ public class Client {
         String message = "S";
         System.out.println(message);
         String reply =  messageServer(message);
-        socket.close();
+        close();
+        System.out.println("Client socket has been closed");
         return reply;
+    }
+
+    public void close() throws IOException {
+        socket.close();
     }
 }
 

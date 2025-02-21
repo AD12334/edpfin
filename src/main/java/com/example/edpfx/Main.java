@@ -1,5 +1,7 @@
 package com.example.edpfx;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -9,10 +11,13 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.time.DayOfWeek;
@@ -189,7 +194,6 @@ public class Main extends Application {
         module.setDisable(true);
         module.setFont(Font.font("Comic Sans",FontWeight.BOLD,10));
         module.setStyle("-fx-background-color: #787e7d; -fx-border-width: 3px; -fx-border-color: black; -fx-border-style: solid;");
-        room.setOnAction(e->module.setDisable(false));
 
 
         module.setOnKeyPressed(e-> {
@@ -221,7 +225,6 @@ public class Main extends Application {
         submit.setDisable(true);
         submit.setFont(Font.font("Comic Sans",FontWeight.BOLD,10));
         submit.setMinWidth(300);
-        module.setOnAction(e->submit.setDisable(false));
         LecturePane.add(submit,20,5);
         //*******************CONTROLLERS********************
 
@@ -233,6 +236,30 @@ public class Main extends Application {
         textField.setAlignment(Pos.CENTER);
         textField.setMinWidth(300);
         LecturePane.add(textField, 20, 7);
+        room.setOnAction(e-> {
+            String choice = (String) room.getText();
+
+            if(choice.length() > 6){//CSG001
+                textField.setText("Please enter a valid room (length <= 5)");
+                room.clear();
+                room.setText("What room is the lecture?");
+
+            }else
+                textField.clear();
+                module.setDisable(false);
+        });
+        module.setOnAction(e->{
+            String choice = (String) module.getText();
+            if(choice.length() > 6){//MS4023
+                textField.setText("Please enter a valid module (length <= 5)");
+                module.clear();
+                module.setText("What module is the lecture for ");
+            }else{
+                textField.clear();
+                submit.setDisable(false);
+            }
+        });
+
 
         submit.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -385,6 +412,8 @@ public class Main extends Application {
     //**************************VIEW SCHEDULE****************************
 
     private void viewSchedule(Stage stage, Client client) {
+        stage.setMinWidth(500);
+        stage.setMinHeight(500);
         String[] schedule = client.viewSchedule();//TODO CONVERT TO A 2D ARRAY AND SPLIT BASED ON /
 
         String[][] schedule2D = new String[schedule.length][];
@@ -400,22 +429,45 @@ public class Main extends Application {
         LinkedHashMap<Integer,String> wednesday = new LinkedHashMap<>();
         LinkedHashMap<Integer,String> thursday = new LinkedHashMap<>();
         LinkedHashMap<Integer,String> friday = new LinkedHashMap<>();
+        HashMap<String, String> colors = new HashMap<>();
         //For each entry in schedule store its values and its index
         String[] times = {"9:00-10:00","10:00-11:00","11:00-12:00","12:00-13:00","13:00-14:00","14:00-15:00","15:00-16:00","16:00-17:00","17:00-18:00"};
         LinkedHashMap<Integer,String>[] maparr = new LinkedHashMap[]{monday,tuesday,wednesday,thursday,friday};
         for(int i = 0;i <maparr.length;i++) {
             for(int j = 0;j<times.length;j++) {
                 maparr[i].put(j,schedule2D[i][j]);
+
             }
         }
 
         for(int i = 0;i <maparr.length;i++) {
             System.out.println(maparr[i]);
+        } String[] colorarr = {
+                "-fx-text-fill: green",
+                "-fx-text-fill: blue",
+                "-fx-text-fill: red",
+                "-fx-text-fill: orange",
+                "-fx-text-fill: purple"
+        };
+
+        for(int i = 0; i <maparr.length; i++) {
+            for (int j = 0; j < times.length; j++) {
+                if (schedule2D[i][j].equals(" ")) {
+                    continue;
+                } else {
+                    String[] temp = schedule2D[i][j].split(","); //IF THE SLOT HAS NO LECTURE THEN NO COLOR NEEDED
+                    String module = temp[1];
+                    if (!colors.containsKey(module)) {//IF THE MODULE ISNT ALREADY IN OUR HASHMAP
+                        colors.put(module, colorarr[colors.size()]);
+                        //PUT THE MODULE CODE AS KEY
+                        //PUT THE COLOR AS THE VALUE
+                        //WE CAN USE THE SIZE OF THE COLOR HASHMAP AS AN INDEX INTO OUR COLORS ARRAY
+                    }
+                }
+            }
         }
-
-
-
-
+        //WE NOW HAVE A HASHMAP THAT MAPS A MODULE TO A COLOR
+        System.out.println(colors);
         //SCHEDULE IS AN ARRAY WHERE THE KEY IS THE DAY (e.g. schedule[0] - monday stuff)
         //THE CONTENTS IN EACH KEY IS THE LECTURES SCHEDULED FOR THAT DAY
         //EACH LECTURE IS ADDED TO THE KEY IN ACCORDANCE TO ITS ORDER IN THE DAY
@@ -609,7 +661,19 @@ public class Main extends Application {
                 t.setEditable(false);
                 t.maxHeightProperty().bind(vbox.heightProperty().divide(10));
                 t.minHeightProperty().bind(vbox.heightProperty().divide(10));
-                t.setStyle("-fx-border-color: BLACK");
+                t .setFont(Font.font("Comic Sans", FontWeight.BOLD, 15));
+
+
+
+                if(maparr[i].get(j).equals(" ")){
+                    t.setStyle("-fx-border-color: BLACK");
+                }else{
+                    String[] temp = maparr[i].get(j).split(",");
+                    String module = temp[1];
+                    t.setStyle("-fx-border-color: BLACK; " + colors.get(module));
+                }
+
+
                 t.setText(maparr[i].get(j)); //setting the text for each day
                 arr[i].getChildren().add(t);
             }
@@ -696,24 +760,25 @@ public class Main extends Application {
 
     }
     public void stop() throws InterruptedException, IOException {
-        String message = client.Exit();
+       String message =  client.Exit();
 
 
         Alert a = new Alert(Alert.AlertType.NONE);
         a.setAlertType(Alert.AlertType.WARNING);
 
         // set content text
-        a.setContentText( message + ": Communication with the server has concluded");
+        a.setContentText( message +  ": Communication with the server has concluded");
 
         // show the dialog
         a.show();
 
-        try {
-            Thread.sleep(5000); // Pause for 5 seconds
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.exit(0);
+
+        Timeline delay = new Timeline(new KeyFrame(Duration.seconds(3), e -> System.exit(0)));//Creates a keyframe that executes 3 seconds after being called
+        delay.setCycleCount(1);//repeats once
+        delay.play();//Calling the delay
+
+
+
     }
     public static void main(String[] args) {
         try{

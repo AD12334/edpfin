@@ -2,6 +2,10 @@ package com.example.edpfx;
 
 
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -117,11 +121,14 @@ public class Server {
                         case("S"):
                             System.out.println("Request received to quit");
                             out.println("TERMINATE");
-                            try{
+                            try {
                                 socket.close();
-                            }catch(IOException e){
+                                System.out.println("Client disconnected");
+                            } catch (IOException e) {
                                 System.err.println("Error closing socket: " + e.getMessage());
+
                             }
+
                             break;
                         default:
                             System.out.println(message);
@@ -150,8 +157,8 @@ public class Server {
 
     public static String removelecture(String day, int time) {
         if (schedule.get(day)[time] != null) {
-            System.out.println("I work");
-            System.out.println(schedule.get(day)[time]);
+//            System.out.println("I work");
+//            System.out.println(schedule.get(day)[time]);
             schedule.get(day)[time] = null;
             return "Removed lecture at " + days.get(Integer.parseInt(day)) + " " + reverse_intervals.get(time);
         }
