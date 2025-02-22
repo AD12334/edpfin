@@ -1,7 +1,6 @@
 package com.example.edpfx;
 
 
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
@@ -20,29 +19,28 @@ public class Server {
     static String[] modules = new String[5];
     static Map<String, Lecture[]> schedule = new HashMap<>();//This is null why?
 
-   static HashMap<Integer,String> days = new HashMap<>();
-   static HashMap<Integer,String> reverse_intervals = new HashMap<>();
+    static HashMap<Integer, String> days = new HashMap<>();
+    static HashMap<Integer, String> reverse_intervals = new HashMap<>();
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(1054);
              Scanner scanner = new Scanner(System.in)) {
             System.out.println("Server is running and waiting for clients...");
 
-            days.put(0,"Monday");
-            days.put(1,"Tuesday");
-            days.put(2,"Wednesday");
-            days.put(3,"Thursday");
-            days.put(4,"Friday");
-            reverse_intervals.put(0,"9:00-10:00");
-            reverse_intervals.put(1,"10:00-11:00");
-            reverse_intervals.put(2,"11:00-12:00");
-            reverse_intervals.put(3,"12:00-13:00");
-            reverse_intervals.put(4,"13:00-14:00");
-            reverse_intervals.put(5,"14:00-15:00");
-            reverse_intervals.put(6,"15:00-16:00");
-            reverse_intervals.put(7,"16:00-17:00");
-            reverse_intervals.put(8,"17:00-18:00");
-
+            days.put(0, "Monday");
+            days.put(1, "Tuesday");
+            days.put(2, "Wednesday");
+            days.put(3, "Thursday");
+            days.put(4, "Friday");
+            reverse_intervals.put(0, "9:00-10:00");
+            reverse_intervals.put(1, "10:00-11:00");
+            reverse_intervals.put(2, "11:00-12:00");
+            reverse_intervals.put(3, "12:00-13:00");
+            reverse_intervals.put(4, "13:00-14:00");
+            reverse_intervals.put(5, "14:00-15:00");
+            reverse_intervals.put(6, "15:00-16:00");
+            reverse_intervals.put(7, "16:00-17:00");
+            reverse_intervals.put(8, "17:00-18:00");
 
 
             while (true) {
@@ -71,9 +69,9 @@ public class Server {
         String message;
         try {
             while ((message = in.readLine()) != null) { // Read messages until client disconnects
-                if(message.length() > 0) {
+                if (message.length() > 0) {
 
-                    String request = message.substring(0,1);
+                    String request = message.substring(0, 1);
 
                     String content = message.substring(1);
                     String[] info = content.split("/");
@@ -83,8 +81,8 @@ public class Server {
                     String code;
 
 
-                    switch(request) {
-                        case("A"):
+                    switch (request) {
+                        case ("A"):
                             // String message = day + "/" + start + "/" + room + "/" + code + "\n";
 
                             day = info[0].toLowerCase();
@@ -94,23 +92,23 @@ public class Server {
                             //TODO FIX THIS
                             //time is a string interval but we cant parse 9:00 -10:00 to an integer
                             //TODO REMOVE THIS
-                            System.out.println("Request received to schedule a lecture on " + day + "\n" + "In room: " + room + "\n" + "For module: " + code + "\nTime: " + time );
+                            System.out.println("Request received to schedule a lecture on " + day + "\n" + "In room: " + room + "\n" + "For module: " + code + "\nTime: " + time);
                             //TODO WE ARE RETURNING THE RESULT OF ATTEMPT SCHEDULE TO OUR CLIENT BUT WE ARENT ACTUALLY DOING ANYTHING WITH IT
                             out.println(attemptSchedule(Integer.parseInt(time), day, room, code)); //time, day, room, module
 
                             break;
-                        case("R"):
+                        case ("R"):
                             day = info[0];
                             time = info[1];
 
                             System.out.println("Request received to remove lecture on " + day + " " + time);
                             out.println(removelecture(day, Integer.parseInt(time)));
                             break;
-                        case("V"):
+                        case ("V"):
                             System.out.println("Request received to view schedule");
                             viewSchedule(socket);
                             break;
-                        case("O"):
+                        case ("O"):
                             System.out.println("Request received to show options");
                             try {
                                 throw new IncorrectActionException();
@@ -118,7 +116,7 @@ public class Server {
                                 out.println(e.getMessage());
                             }
                             break;
-                        case("S"):
+                        case ("S"):
                             System.out.println("Request received to quit");
                             out.println("TERMINATE");
                             try {
@@ -134,17 +132,18 @@ public class Server {
                             System.out.println(message);
                     }
                 }
-        }
+            }
 
-        }catch (Exception e){
+        } catch (Exception e) {
 
         } //TODO FIX
     }
-//TODO FIX THIS BECAUSE WHY IS TIME AN INT
+
+    //TODO FIX THIS BECAUSE WHY IS TIME AN INT
     public static String attemptSchedule(int time, String day, String room, String module) {
-        if(!checkSchedule(time, day)) {
+        if (!checkSchedule(time, day)) {
             return "There is already a lecture scheduled for this time and date";
-        } else if(!checkModules(module)) {
+        } else if (!checkModules(module)) {
             return "Can only create five modules";
         } else {
             //lecture time will be indexed according to the time eg. 9:00 -> 0
@@ -166,22 +165,22 @@ public class Server {
         return "No lecture scheduled for this time"; //Throw incorrect action exception here maybe??
     }
 
-    public static void viewSchedule(Socket socket) throws IOException{
+    public static void viewSchedule(Socket socket) throws IOException {
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            //FOR LOOP TO FORMAT THE OUTPUT
-            for(int i = 0;i<schedule.size();i++) {
-                String index = String.valueOf(i);
-                String message = "";
-                for (int j = 0; j < schedule.get(index).length; j++) {
-                    if (schedule.get(index)[j] != null) {
-                        message += schedule.get(index)[j] + "/";
-                    } else {
-                        message += " /";
-                    }
+        //FOR LOOP TO FORMAT THE OUTPUT
+        for (int i = 0; i < schedule.size(); i++) {
+            String index = String.valueOf(i);
+            String message = "";
+            for (int j = 0; j < schedule.get(index).length; j++) {
+                if (schedule.get(index)[j] != null) {
+                    message += schedule.get(index)[j] + "/";
+                } else {
+                    message += " /";
                 }
-                System.out.println(message);
-                out.println(message);
             }
+            System.out.println(message);
+            out.println(message);
+        }
         /*catch (IOException e) {
             System.err.println("Error sending schedule: " + e.getMessage());
             e.printStackTrace();
@@ -190,17 +189,17 @@ public class Server {
 
     public static boolean checkSchedule(int time, String day) {
         //check if the time of the lecture doesn't clash with another lecture
-        if(schedule.get(day)[time] != null) {
+        if (schedule.get(day)[time] != null) {
             return false;
         }
         return true;
     }
 
     public static boolean checkModules(String module) {
-        for(int i = 0; i < 5; i++) { //why doesnt this work
-            if(module.equals(modules[i])) {
+        for (int i = 0; i < 5; i++) { //why doesnt this work
+            if (module.equals(modules[i])) {
                 return true;
-            } else if(modules[i] == null) {
+            } else if (modules[i] == null) {
                 modules[i] = module;
                 return true;
             }
