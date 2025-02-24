@@ -266,7 +266,7 @@ public class Main extends Application {
                 String dow = (String) day.getValue();
                 String dayOfWeek = String.valueOf(DayOfWeek.valueOf(dow.toUpperCase()).getValue() - 1);
 
-                textField.setText(client.addLecture(dayOfWeek, time.getValue(), room.getText(), module.getText()));
+                textField.setText(client.addLecture(dayOfWeek, time.getValue(), room.getText().toUpperCase(), module.getText()));
             }
         });
 
