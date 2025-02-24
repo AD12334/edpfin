@@ -141,7 +141,7 @@ public class Server {
 
     //TODO FIX THIS BECAUSE WHY IS TIME AN INT
     public static String attemptSchedule(int time, String day, String room, String module) {
-        if (!checkSchedule(time, day)) {
+        if (!checkSchedule(time, day, room)) {
             return "There is already a lecture scheduled for this time and date";
         } else if (!checkModules(module)) {
             return "Can only create five modules";
@@ -187,9 +187,9 @@ public class Server {
         }*/
     }
 
-    public static boolean checkSchedule(int time, String day) {
+    public static boolean checkSchedule(int time, String day, String room) {
         //check if the time of the lecture doesn't clash with another lecture
-        if (schedule.get(day)[time] != null) {
+        if (schedule.get(day)[time] != null  || schedule.get(day)[time].getRoom().equals(room)) {
             return false;
         }
         return true;
