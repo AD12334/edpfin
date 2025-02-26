@@ -141,13 +141,19 @@ public class Server {
 
     //TODO FIX THIS BECAUSE WHY IS TIME AN INT
     public static String attemptSchedule(int time, String day, String room, String module) {
+        System.out.println(time + " " + day + " " + room + " " + module);
+        System.out.println("hu");
         if (!checkSchedule(time, day, room)) {
+            System.out.println("hu1");
             return "There is already a lecture scheduled for this time and date";
         } else if (!checkModules(module)) {
+            System.out.println("h2u");
             return "Can only create five modules";
         } else {
             //lecture time will be indexed according to the time eg. 9:00 -> 0
+            System.out.println("hu");
             Lecture lecture = new Lecture(room, module);
+
             schedule.get(day)[time] = lecture;
             System.out.println("the lecture" + schedule.get(day)[time]);
             return "Lecture has been scheduled for " + days.get(Integer.parseInt(day)) + " " + reverse_intervals.get(time);
@@ -190,20 +196,25 @@ public class Server {
     public static boolean checkSchedule(int time, String day, String room) {
         //check if the time of the lecture doesn't clash with another lecture
         if (schedule.get(day)[time] != null  || schedule.get(day)[time].getRoom().equals(room)) {
+            System.out.println("Check schedules returns false");
             return false;
         }
+        System.out.println("Check schedule returns true");
         return true;
     }
 
     public static boolean checkModules(String module) {
         for (int i = 0; i < 5; i++) { //why doesnt this work
             if (module.equals(modules[i])) {
+                System.out.println("Check modules returns true");
                 return true;
             } else if (modules[i] == null) {
                 modules[i] = module;
+                System.out.println("Check modules returns true");
                 return true;
             }
         }
+        System.out.println("Check modules returns false");
         return false;
     }
 

@@ -43,7 +43,11 @@ public class Client {
     public String addLecture(String day, String time, String room, String code) {
         String message = "A" + day + "/" + intervals.get(time) + "/" + room + "/" + code + "\n";
         System.out.println(message);
-        return messageServer(message);
+
+        String response = messageServer(message);
+        System.out.println(response);
+
+        return response;
     }
 
     public String removelecture(String day, String time) {
