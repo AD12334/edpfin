@@ -10,6 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -24,7 +25,7 @@ public class Server {
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(1054);
-             Scanner scanner = new Scanner(System.in)) {
+                    Scanner scanner = new Scanner(System.in)) {
             System.out.println("Server is running and waiting for clients...");
 
             days.put(0, "Monday");
@@ -45,15 +46,12 @@ public class Server {
 
             while (true) {
                 try (Socket socket = serverSocket.accept();
-                     BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+                            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
                     System.out.println("Client connected!");
                     createMap(schedule);
 
-                    handleMessages(socket, in, scanner); // Having this here is causing an error
-                    //A message is processed upon reception, however once processed if no new message is available an error is thrown
-                    //Be careful if edititng here -Adam 2025 library floor 2
-                    //TODO FIX
+                    handleMessages(socket, in, scanner);
                 } catch (IOException e) {
                     System.err.println("Error handling client connection: " + e.getMessage());
                     e.printStackTrace(); // Print the full stack trace to the console
@@ -82,54 +80,54 @@ public class Server {
 
 
                     switch (request) {
-                        case ("A"):
-                            // String message = day + "/" + start + "/" + room + "/" + code + "\n";
+                    case ("A"):
+                        // String message = day + "/" + start + "/" + room + "/" + code + "\n";
 
-                            day = info[0].toLowerCase();
-                            time = info[1];
-                            room = info[2];
-                            code = info[3].toUpperCase();
-                            //TODO FIX THIS
-                            //time is a string interval but we cant parse 9:00 -10:00 to an integer
-                            //TODO REMOVE THIS
-                            System.out.println("Request received to schedule a lecture on " + day + "\n" + "In room: " + room + "\n" + "For module: " + code + "\nTime: " + time);
-                            //TODO WE ARE RETURNING THE RESULT OF ATTEMPT SCHEDULE TO OUR CLIENT BUT WE ARENT ACTUALLY DOING ANYTHING WITH IT
-                            out.println(attemptSchedule(Integer.parseInt(time), day, room, code)); //time, day, room, module
+                        day = info[0].toLowerCase();
+                        time = info[1];
+                        room = info[2];
+                        code = info[3].toUpperCase();
+                        //TODO FIX THIS
+                        //time is a string interval but we cant parse 9:00 -10:00 to an integer
+                        //TODO REMOVE THIS
+                        System.out.println("Request received to schedule a lecture on " + day + "\n" + "In room: " + room + "\n" + "For module: " + code + "\nTime: " + time);
+                        //TODO WE ARE RETURNING THE RESULT OF ATTEMPT SCHEDULE TO OUR CLIENT BUT WE ARENT ACTUALLY DOING ANYTHING WITH IT
+                        out.println(attemptSchedule(Integer.parseInt(time), day, room, code)); //time, day, room, module
 
-                            break;
-                        case ("R"):
-                            day = info[0];
-                            time = info[1];
+                        break;
+                    case ("R"):
+                        day = info[0];
+                        time = info[1];
 
-                            System.out.println("Request received to remove lecture on " + day + " " + time);
-                            out.println(removelecture(day, Integer.parseInt(time)));
-                            break;
-                        case ("V"):
-                            System.out.println("Request received to view schedule");
-                            viewSchedule(socket);
-                            break;
-                        case ("O"):
-                            System.out.println("Request received to show options");
-                            try {
-                                throw new IncorrectActionException();
-                            } catch (IncorrectActionException e) {
-                                out.println(e.getMessage());
-                            }
-                            break;
-                        case ("S"):
-                            System.out.println("Request received to quit");
-                            out.println("TERMINATE");
-                            try {
-                                socket.close();
-                                System.out.println("Client disconnected");
-                            } catch (IOException e) {
-                                System.err.println("Error closing socket: " + e.getMessage());
+                        System.out.println("Request received to remove lecture on " + day + " " + time);
+                        out.println(removelecture(day, Integer.parseInt(time)));
+                        break;
+                    case ("V"):
+                        System.out.println("Request received to view schedule");
+                        viewSchedule(socket);
+                        break;
+                    case ("O"):
+                        System.out.println("Request received to show options");
+                        try {
+                            throw new IncorrectActionException();
+                        } catch (IncorrectActionException e) {
+                            out.println(e.getMessage());
+                        }
+                        break;
+                    case ("S"):
+                        System.out.println("Request received to quit");
+                        out.println("TERMINATE");
+                        try {
+                            socket.close();
+                            System.out.println("Client disconnected");
+                        } catch (IOException e) {
+                            System.err.println("Error closing socket: " + e.getMessage());
 
-                            }
+                        }
 
-                            break;
-                        default:
-                            System.out.println(message);
+                        break;
+                    default:
+                        System.out.println(message);
                     }
                 }
             }
@@ -139,7 +137,6 @@ public class Server {
         } //TODO FIX
     }
 
-    //TODO FIX THIS BECAUSE WHY IS TIME AN INT
     public static String attemptSchedule(int time, String day, String room, String module) {
         System.out.println(time + " " + day + " " + room + " " + module);
         System.out.println("hu");
@@ -162,12 +159,11 @@ public class Server {
 
     public static String removelecture(String day, int time) {
         if (schedule.get(day)[time] != null) {
-//            System.out.println("I work");
-//            System.out.println(schedule.get(day)[time]);
+            //System.out.println("I work");
+            //System.out.println(schedule.get(day)[time]);
             schedule.get(day)[time] = null;
             return "Removed lecture at " + days.get(Integer.parseInt(day)) + " " + reverse_intervals.get(time);
         }
-        //TODO WHEN SCHEDULING A LECTURE THEN REMOVING ONE SOMETHING GOES WRONG or vice versa
         return "No lecture scheduled for this time"; //Throw incorrect action exception here maybe??
     }
 
@@ -233,5 +229,56 @@ public class Server {
 
         We need to populate the values in our arrays with default values
          */
+    }
+
+    // writes changes to csv
+    public static void csvWriter(int time, String day, Lecture lecture) {
+        ArrayList<String[]> data = new ArrayList<>();
+
+        //reading csv into memory
+        try (BufferedReader csvReader = new BufferedReader(new FileReader("schedule.csv"))) {
+            String line;
+
+            while((line = csvReader.readLine()) != null)
+                data.add(line.split(",", -1));
+        } catch (Exception e) {
+            System.out.println("Error writing data to memory");
+        }
+
+        // changing data
+        data.get(time + 1)[Integer.parseInt(day)] = lecture.toString();
+
+        //writing data back to csv
+        try (BufferedWriter csvWriter = new BufferedWriter(new FileWriter("schedule.csv"))) {
+            for(String[] lineData : data) {
+                csvWriter.write(String.join(",", lineData));
+                csvWriter.newLine();
+            }
+        } catch (Exception e) {
+            System.err.println("Could not write data to database");
+        }
+    }
+
+    //reads in the csv into the hashmap
+    public static void csvReader() {
+        String[] data = new String[5];
+
+        try (BufferedReader csvReader = new BufferedReader(new FileReader("schedule.csv"))) {
+            String line;
+            int index = 0;
+
+            while((line = csvReader.readLine()) != null) {
+                data = line.split(",", -1);
+
+                for(int i = 0; i < 5; i++) {
+                    String[] details = data[i].split("-");
+                    Lecture lecture = new Lecture(details[0], details[1]);
+                    schedule.get(String.valueOf(i))[index] = lecture;
+                }
+                index++;
+            }
+        } catch (Exception e) {
+            System.err.println("Could not load in CSV");
+        }
     }
 }
